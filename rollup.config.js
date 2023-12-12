@@ -2,7 +2,7 @@ const resolve = require("@rollup/plugin-node-resolve");
 const commonjs = require("@rollup/plugin-commonjs");
 const babel = require("@rollup/plugin-babel");
 const postcss = require("rollup-plugin-postcss");
-const svg = require("rollup-plugin-svg");
+const image = require("@rollup/plugin-image");
 const html = require("@rollup/plugin-html");
 const replace = require("@rollup/plugin-replace");
 const fs = require("fs");
@@ -24,11 +24,11 @@ module.exports = {
   },
   plugins: [
     resolve(),
-    svg({
-      base64: true,
-    }),
+    image(),
     postcss({
       extensions: [".css"],
+      extract: true, // 将CSS文件提取到独立文件
+      minimize: true, // 压缩CSS文件
     }),
     babel({
       babelHelpers: "bundled",
@@ -42,6 +42,12 @@ module.exports = {
     }),
     html({
       template({ attributes, files, publicPath, title }) {
+        const styles = files.css
+          .map(
+            ({ fileName }) =>
+              `<link rel="stylesheet" href="${publicPath}${fileName}">`
+          )
+          .join("\n");
         const scripts = files.js
           .map(
             ({ fileName }) => `<script src="${publicPath}${fileName}"></script>`
@@ -49,7 +55,7 @@ module.exports = {
           .join("\n");
         return mustache.render(
           fs.readFileSync("./public/index.html", { encoding: "utf-8" }),
-          { attrs: kvToAttributes(attributes.html), title, scripts }
+          { attrs: kvToAttributes(attributes.html), title, styles, scripts }
         );
       },
     }),
