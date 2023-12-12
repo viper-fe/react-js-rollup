@@ -5,7 +5,3 @@
 - React
 - React DOM
 - Rollup
-
-
-依赖
-
